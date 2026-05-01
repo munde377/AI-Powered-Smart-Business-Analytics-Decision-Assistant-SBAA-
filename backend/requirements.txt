@@ -9,6 +9,7 @@ passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.2.0
 pandas==2.2.3
 openpyxl==3.1.5
+numpy==1.26.4
 scikit-learn==1.4.2
 tensorflow-cpu==2.16.1
 pydantic==2.7.1
