@@ -3,18 +3,6 @@ services:
     name: ai-business-analytics
     runtime: docker
     dockerfilePath: ./Dockerfile
-    buildCommand: ""
-    startCommand: ""
-    envVars:
-      - key: DATABASE_URL
-        scope: build
-      - key: REDIS_URL
-        scope: build
-      - key: ENVIRONMENT
-        value: production
-      - key: SECRET_KEY
-        scope: build
-      - key: JWT_SECRET
-        scope: build
-      - key: GROQ_API_KEY
-        scope: build
+    region: oregon
+    plan: free
+
