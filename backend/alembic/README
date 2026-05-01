@@ -1,0 +1,5 @@
+# Alembic migration directory for Smart Business Analytics backend.
+
+# The alembic/ directory contains scripts for managing database schema changes.
+# This is generated with: alembic init alembic
+# Migrations are applied with: alembic upgrade head

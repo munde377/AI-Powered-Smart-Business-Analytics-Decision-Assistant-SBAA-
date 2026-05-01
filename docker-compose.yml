@@ -1,0 +1,109 @@
+version: '3.9'
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: smart-analytics-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: smart_analytics
+      MYSQL_USER: smart_user
+      MYSQL_PASSWORD: smart_pass
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: smart-analytics-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build: .
+    container_name: smart-analytics-backend
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - '8000:8000'
+    environment:
+      - DATABASE_URL=mysql+pymysql://smart_user:smart_pass@mysql:3306/smart_analytics
+      - SECRET_KEY=your-strong-secret-key
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - REDIS_URL=redis://redis:6379/0
+      - GROQ_API_KEY=
+      - GROQ_MODEL=llama3-8b-8192
+      - OLLAMA_URL=http://ollama:11434
+      - USE_LOCAL_LLM=false
+    volumes:
+      - ./backend:/app/backend
+      - ./storage:/app/storage
+
+  celery:
+    build: .
+    container_name: smart-analytics-celery
+    depends_on:
+      - mysql
+      - redis
+      - backend
+    environment:
+      - DATABASE_URL=mysql+pymysql://smart_user:smart_pass@mysql:3306/smart_analytics
+      - SECRET_KEY=your-strong-secret-key
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - REDIS_URL=redis://redis:6379/0
+      - GROQ_API_KEY=
+      - GROQ_MODEL=llama3-8b-8192
+      - OLLAMA_URL=http://ollama:11434
+      - USE_LOCAL_LLM=false
+    volumes:
+      - ./backend:/app/backend
+      - ./storage:/app/storage
+    command: celery -A app.tasks.celery_app worker --loglevel=info --queues=analytics_queue
+    restart: unless-stopped
+
+  celery-beat:
+    build: .
+    container_name: smart-analytics-celery-beat
+    depends_on:
+      - redis
+      - mysql
+    environment:
+      - DATABASE_URL=mysql+pymysql://smart_user:smart_pass@mysql:3306/smart_analytics
+      - SECRET_KEY=your-strong-secret-key
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - REDIS_URL=redis://redis:6379/0
+      - GROQ_API_KEY=
+      - GROQ_MODEL=llama3-8b-8192
+      - OLLAMA_URL=http://ollama:11434
+      - USE_LOCAL_LLM=false
+    volumes:
+      - ./backend:/app/backend
+      - ./storage:/app/storage
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smart-analytics-frontend
+    ports:
+      - '3000:4173'
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app/frontend
+
+volumes:
+  mysql_data:
+  redis_data:
