@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     debug: bool = Field(False, env='DEBUG')
     
     # Database
-    database_url: str = Field(..., env='DATABASE_URL')
+    database_url: str = Field('sqlite:///./local.db', env='DATABASE_URL')
     db_pool_size: int = Field(10, env='DB_POOL_SIZE')
     db_max_overflow: int = Field(20, env='DB_MAX_OVERFLOW')
     db_pool_recycle: int = Field(3600, env='DB_POOL_RECYCLE')
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = Field(60, env='ACCESS_TOKEN_EXPIRE_MINUTES')
     
     # Redis/Celery
-    redis_url: str = Field(..., env='REDIS_URL')
+    redis_url: str = Field('redis://localhost:6379/0', env='REDIS_URL')
     
     # Groq / LLM
     groq_api_key: str = Field(..., env='GROQ_API_KEY')
