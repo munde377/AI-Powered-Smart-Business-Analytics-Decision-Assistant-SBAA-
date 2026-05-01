@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     def validate_database_url(cls, v):
         if not v:
             raise ValueError('DATABASE_URL must be set')
+        if v.startswith('sqlite:///'):
+            local_path = v[len('sqlite:///'):]
+            if local_path.startswith('./') or not local_path.startswith('/'):
+                normalized = PROJECT_ROOT / local_path.lstrip('./')
+                v = f'sqlite:///{normalized}'
         return v
 
     @validator('secret_key')
