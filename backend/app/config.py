@@ -1,5 +1,10 @@
+from pathlib import Path
 from pydantic import BaseSettings, Field, validator
 from typing import Optional
+
+# Determine project paths relative to this config module.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_SQLITE_PATH = PROJECT_ROOT / 'local.db'
 
 class Settings(BaseSettings):
     # Core
@@ -7,7 +12,7 @@ class Settings(BaseSettings):
     debug: bool = Field(False, env='DEBUG')
     
     # Database
-    database_url: str = Field('sqlite:///./local.db', env='DATABASE_URL')
+    database_url: str = Field(f'sqlite:///{DEFAULT_SQLITE_PATH}', env='DATABASE_URL')
     db_pool_size: int = Field(10, env='DB_POOL_SIZE')
     db_max_overflow: int = Field(20, env='DB_MAX_OVERFLOW')
     db_pool_recycle: int = Field(3600, env='DB_POOL_RECYCLE')
