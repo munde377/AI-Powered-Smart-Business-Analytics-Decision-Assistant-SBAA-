@@ -1,6 +1,8 @@
 from pathlib import Path
-from pydantic import BaseSettings, Field, validator
 from typing import Optional
+from urllib.parse import urlparse
+
+from pydantic import BaseSettings, Field, validator
 
 # Determine project paths relative to this config module.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -55,6 +57,21 @@ class Settings(BaseSettings):
             if local_path.startswith('./') or not local_path.startswith('/'):
                 normalized = PROJECT_ROOT / local_path.lstrip('./')
                 v = f'sqlite:///{normalized}'
+        return v
+
+    @validator('redis_url')
+    def validate_redis_url(cls, v):
+        if not v:
+            raise ValueError('REDIS_URL must be set')
+        if '<' in v or '>' in v:
+            raise ValueError('REDIS_URL contains placeholder values; use a real hostname and port such as redis://localhost:6379/0')
+        try:
+            parsed = urlparse(v)
+            if parsed.scheme not in ('redis', 'rediss'):
+                raise ValueError('REDIS_URL must start with redis:// or rediss://')
+            _ = parsed.port
+        except ValueError as exc:
+            raise ValueError(f'Invalid REDIS_URL: {exc}') from exc
         return v
 
     @validator('secret_key')
